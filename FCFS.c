@@ -1,57 +1,89 @@
-#include<stdio.h>
-struct {
+#include <stdio.h>
+
+typedef struct {
+    int pid;
     int bt;
     int wt;
     int tat;
     int ct;
-}p[10];
+    int visited;
+} Process;
 
-int main()
-{
-    int tt=0;
-    int n;
+int main() {
+    int n;  
     printf("Enter number of processes: ");
-    scanf("%d",&n);
-    for(int i=1;i<=n;i++)
-    {
-        printf("Process %d\n",i);
-        printf("Enter burst time for process %d: ",i);
-        scanf("%d",&p[i].bt);
+    scanf("%d", &n);
+    
+    Process p[n + 1];  
+    
+    for (int i = 1; i <= n; i++) {
+        p[i].pid = i;
+        printf("Enter Burst Time for Process %d: ", i);
+        scanf("%d", &p[i].bt);
+        p[i].visited = 0; 
     }
-    printf("GANTT CHART:- \n");
-    p[1].wt=0;
-    p[1].ct=p[1].bt;
-    tt=p[1].bt;
-    p[1].tat=p[1].ct;
-    double avgtat=p[1].tat,avgwt=0.0;
-    printf("0  P1  %d  ",p[1].ct);
-    for(int i=2;i<=n;i++)
-    {
-        p[i].wt=tt;
-        p[i].tat=p[i].wt+p[i].bt;
-        p[i].ct=p[i].tat;
-        tt+=p[i].bt;
-        printf("P%d  %d  ",i,p[i].ct);
-        avgtat+=p[i].tat;
-        avgwt+=p[i].wt;
+
+    int completed = 0, t = 0, idx;
+    double avg_wt = 0.0, avg_tat = 0.0;
+    int order[n + 1];
+    int order_index = 0;
+
+    printf("GANTT CHART:\n");
+
+    while (completed < n) {
+        idx = -1;
+
+        for (int i = 1; i <= n; i++) {
+            if (!p[i].visited) {
+                idx = i; // Choose process based on PID
+                break;
+            }
+        }
+
+        if (idx == -1) {
+            t++;
+            continue;
+        }
+
+        t += p[idx].bt;
+        p[idx].ct = t;  
+        p[idx].wt = t - p[idx].bt; 
+        p[idx].tat = t; 
+        avg_wt += p[idx].wt;
+        avg_tat += p[idx].tat;
+        p[idx].visited = 1;
+        order[order_index++] = p[idx].pid; 
+        completed++;
     }
-    avgtat/=n;
-    avgwt/=n;
-    printf("\n Prcoess ID | Burst Time | Waiting Time | Turnaround Time | Completion Time\n");
-    for(int i=1;i<=n;i++)
-    {
+
+    for (int i = 0; i < order_index; i++) {
+        printf(" P%d  ", order[i]);
+    }
+    printf("\n");
+
+    printf("0   ");
+    for (int i = 0; i < order_index; i++) {
+        printf("%d   ", p[order[i]].ct);
+    }
+    printf("\n");
+
+    printf("\nProcess ID | Burst Time | Waiting Time | Turnaround Time | Completion Time\n");
+    for(int i = 1; i <= n; i++) {
         printf("      ");
-        printf("%d",i);
+        printf("%d", p[i].pid);
+        printf("           ");
+        printf("%d", p[i].bt);
         printf("            ");
-        printf("%d",p[i].bt);
-        printf("            ");
-        printf("%d",p[i].wt);
+        printf("%d", p[i].wt);
         printf("                ");
-        printf("%d",p[i].tat);
-        printf("                 ");
-        printf("%d",p[i].ct);
+        printf("%d", p[i].tat);
+        printf("                ");
+        printf("%d", p[i].ct);
         printf("\n");
     }
-    printf("Average waiting time is: %0.1f\n",avgwt);
-    printf("Average turnaround time is: %0.1f\n",avgtat);
+
+    printf("Avg WT: %.1f\n", avg_wt / n);
+    printf("Avg TAT: %.1f\n", avg_tat / n);
+
+    return 0;
 }
